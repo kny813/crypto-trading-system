@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -31,5 +34,7 @@ public class UserCryptoCurrencyTransaction {
 
     private BigDecimal toAmount;
 
+    @Generated(value = GenerationTime.INSERT)
+    @ColumnDefault(value = "CURRENT_TIMESTAMP")
     private Timestamp createdDateTime;
 }

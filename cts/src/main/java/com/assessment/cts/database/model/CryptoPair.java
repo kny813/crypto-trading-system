@@ -1,6 +1,9 @@
 package com.assessment.cts.database.model;
 
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -16,8 +19,12 @@ public class CryptoPair {
     @EmbeddedId
     private CryptoPairId cryptoPairId;
 
+    @Generated(value = GenerationTime.INSERT)
+    @ColumnDefault(value = "CURRENT_TIMESTAMP")
     private Timestamp updatedDateTime;
 
+    @Generated(value = GenerationTime.INSERT)
+    @ColumnDefault(value = "CURRENT_TIMESTAMP")
     private Timestamp createdDateTime;
 
     @ManyToOne

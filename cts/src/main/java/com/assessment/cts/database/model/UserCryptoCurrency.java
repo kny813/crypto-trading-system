@@ -1,6 +1,9 @@
 package com.assessment.cts.database.model;
 
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -19,8 +22,12 @@ public class UserCryptoCurrency {
 
     private BigDecimal balance;
 
+    @Generated(value = GenerationTime.INSERT)
+    @ColumnDefault(value = "CURRENT_TIMESTAMP")
     private Timestamp updatedDateTime;
 
+    @Generated(value = GenerationTime.INSERT)
+    @ColumnDefault(value = "CURRENT_TIMESTAMP")
     private Timestamp createdDateTime;
 
     @ManyToOne
@@ -32,5 +39,4 @@ public class UserCryptoCurrency {
     @JoinColumn(name = "cryptoSymbol", insertable = false, updatable = false)
     @ToString.Exclude
     private CryptoCurrency cryptoCurrency;
-
 }
