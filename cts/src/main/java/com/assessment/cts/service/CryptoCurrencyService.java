@@ -13,4 +13,6 @@ public interface CryptoCurrencyService {
     CryptoCurrency getCryptoCurrency(String cryptoSymbol);
 
     List<CryptoCurrency> getCryptoCurrencyList();
+
+    void updateCryptoCurrencyFromOnline();
 }

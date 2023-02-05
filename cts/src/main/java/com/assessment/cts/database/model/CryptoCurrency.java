@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
@@ -23,16 +24,16 @@ public class CryptoCurrency {
     @Id
     private String cryptoSymbol;
 
+    @Column(columnDefinition = "numeric(19,10)")
     private BigDecimal bidPrice;
 
+    @Column(columnDefinition = "numeric(19,10)")
     private BigDecimal askPrice;
 
-    @Generated(value = GenerationTime.INSERT)
-    @ColumnDefault(value = "CURRENT_TIMESTAMP")
+    @CreationTimestamp
     private Timestamp updatedDateTime;
 
-    @Generated(value = GenerationTime.INSERT)
-    @ColumnDefault(value = "CURRENT_TIMESTAMP")
+    @CreationTimestamp
     private Timestamp createdDateTime;
 
 }
