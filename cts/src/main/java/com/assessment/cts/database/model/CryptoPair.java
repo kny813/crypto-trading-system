@@ -28,12 +28,12 @@ public class CryptoPair {
     private Timestamp createdDateTime;
 
     @ManyToOne
-    @JoinColumn(name = "cryptoSymbol1", insertable = false, updatable = false)
+    @JoinColumn(name = "cryptoCode1", insertable = false, updatable = false)
     @ToString.Exclude
     private CryptoCurrency cryptoCurrency1;
 
     @ManyToOne
-    @JoinColumn(name = "cryptoSymbol2", insertable = false, updatable = false)
+    @JoinColumn(name = "cryptoCode2", insertable = false, updatable = false)
     @ToString.Exclude
     private CryptoCurrency cryptoCurrency2;
 }

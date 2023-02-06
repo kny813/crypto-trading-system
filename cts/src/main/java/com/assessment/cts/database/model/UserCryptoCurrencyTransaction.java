@@ -26,11 +26,11 @@ public class UserCryptoCurrencyTransaction {
 
     private long userId;
 
-    private String fromCryptoSymbol;
+    private String fromCryptoCode;
 
     private BigDecimal fromAmount;
 
-    private String toCryptoSymbol;
+    private String toCryptoCode;
 
     private BigDecimal toAmount;
 

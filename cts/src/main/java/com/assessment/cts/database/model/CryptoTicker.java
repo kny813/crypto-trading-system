@@ -6,7 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
@@ -15,13 +18,17 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "crypto_currency")
-public class CryptoCurrency {
+@Table(name = "crypto_ticker")
+public class CryptoTicker {
 
     @Id
-    private String cryptoCode;
+    private String symbol;
 
-    private boolean isActive;
+    @Column(columnDefinition = "numeric(19,10)")
+    private BigDecimal bidPrice;
+
+    @Column(columnDefinition = "numeric(19,10)")
+    private BigDecimal askPrice;
 
     @CreationTimestamp
     private Timestamp updatedDateTime;

@@ -14,6 +14,6 @@ import java.io.Serializable;
 public class UserCryptoCurrencyId implements Serializable {
 
     private long userId;
-    private String cryptoSymbol;
+    private String cryptoCode;
 
 }

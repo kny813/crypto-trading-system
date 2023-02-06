@@ -12,6 +12,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Embeddable
 public class CryptoPairId implements Serializable {
-    private String cryptoSymbol1;
-    private String cryptoSymbol2;
+    private String cryptoCode1;
+    private String cryptoCode2;
 }

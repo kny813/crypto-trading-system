@@ -36,7 +36,12 @@ public class UserCryptoCurrency {
     private UserAccount userAccount;
 
     @ManyToOne
-    @JoinColumn(name = "cryptoSymbol", insertable = false, updatable = false)
+    @JoinColumn(name = "cryptoCode", insertable = false, updatable = false)
     @ToString.Exclude
     private CryptoCurrency cryptoCurrency;
+
+    public UserCryptoCurrency(UserCryptoCurrencyId userCryptoCurrencyId, BigDecimal balance) {
+        this.userCryptoCurrencyId = userCryptoCurrencyId;
+        this.balance = balance;
+    }
 }

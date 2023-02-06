@@ -23,7 +23,7 @@ public class Scheduler {
         long now = System.currentTimeMillis() / 1000;
         logger.debug("scheduleTaskRetrieveCryptoDataOnline using cron jobs - " + now);
 
-        cryptoCurrencyService.updateCryptoCurrencyFromOnline();
+        cryptoCurrencyService.updateCryptoTickerFromOnline();
     }
 
 }

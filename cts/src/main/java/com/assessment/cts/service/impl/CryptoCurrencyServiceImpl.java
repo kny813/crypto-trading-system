@@ -3,9 +3,15 @@ package com.assessment.cts.service.impl;
 import com.assessment.cts.constant.CryptoCurrencyConstant;
 import com.assessment.cts.database.dto.BinancePriceDto;
 import com.assessment.cts.database.model.CryptoCurrency;
+import com.assessment.cts.database.model.CryptoPair;
+import com.assessment.cts.database.model.CryptoPairId;
+import com.assessment.cts.database.model.CryptoTicker;
 import com.assessment.cts.database.repository.CryptoCurrencyRepository;
+import com.assessment.cts.database.repository.CryptoPairRepository;
+import com.assessment.cts.database.repository.CryptoTickerRepository;
 import com.assessment.cts.service.CryptoCurrencyService;
 
+import com.assessment.cts.util.CustomException;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,14 +35,25 @@ public class CryptoCurrencyServiceImpl implements CryptoCurrencyService {
     @Autowired
     private CryptoCurrencyRepository cryptoCurrencyRepository;
 
+    @Autowired
+    private CryptoPairRepository cryptoPairRepository;
+
+    @Autowired
+    private CryptoTickerRepository cryptoTickerRepository;
+
+
     @Override
-    public CryptoCurrency saveCryptoCurrency(CryptoCurrency cryptoCurrency) {
-        return cryptoCurrencyRepository.save(cryptoCurrency);
+    public CryptoCurrency getCryptoCurrency(String cryptoCode) {
+        return cryptoCurrencyRepository.findById(cryptoCode).orElse(null);
     }
 
     @Override
-    public CryptoCurrency getCryptoCurrency(String cryptoSymbol) {
-        return cryptoCurrencyRepository.findById(cryptoSymbol).orElse(null);
+    public CryptoCurrency saveCryptoCurrency(CryptoCurrency cryptoCurrency) {
+        CryptoCurrency cryptoCurrencySave = cryptoCurrencyRepository
+                .findById(cryptoCurrency.getCryptoCode()).orElse(cryptoCurrency);
+        cryptoCurrencySave.setUpdatedDateTime(new Timestamp(System.currentTimeMillis()));
+        cryptoCurrencySave.setActive(cryptoCurrency.isActive());
+        return cryptoCurrencyRepository.save(cryptoCurrency);
     }
 
     @Override
@@ -45,7 +62,7 @@ public class CryptoCurrencyServiceImpl implements CryptoCurrencyService {
     }
 
     @Override
-    public void updateCryptoCurrencyFromOnline() {
+    public void updateCryptoTickerFromOnline() {
         logger.info("Schedule Task: updateCryptoCurrencyFromOnline");
 
         RestTemplate restTemplate = new RestTemplate();
@@ -58,7 +75,7 @@ public class CryptoCurrencyServiceImpl implements CryptoCurrencyService {
                 .collect(Collectors.toMap(
                         i -> binancePriceDtos[i].getSymbol().toUpperCase(), i -> binancePriceDtos[i]));
 
-        List<CryptoCurrency> cryptoCurrencyList = new ArrayList<>();
+        List<CryptoTicker> cryptoTickerList = new ArrayList<>();
 
         for(LinkedHashMap houbiPriceMap: map.get(CryptoCurrencyConstant.HOUBI_ROOT_KEY)) {
 
@@ -68,14 +85,14 @@ public class CryptoCurrencyServiceImpl implements CryptoCurrencyService {
             BigDecimal houbiBid = BigDecimal.valueOf(
                     (Double) houbiPriceMap.get(CryptoCurrencyConstant.HOUBI_BID_PRICE_KEY));
 
-            CryptoCurrency cryptoCurrency = cryptoCurrencyRepository.findById(houbiSymbol)
-                    .orElse(new CryptoCurrency());
+            CryptoTicker cryptoTicker = cryptoTickerRepository.findById(houbiSymbol)
+                    .orElse(new CryptoTicker());
 
             if (binancePriceDtoMap.get(houbiSymbol) == null) {
-                cryptoCurrencyList.add(convertDto(cryptoCurrency, houbiSymbol,houbiAsk, houbiBid));
+                cryptoTickerList.add(convertDto(cryptoTicker, houbiSymbol,houbiAsk, houbiBid));
             } else {
-                cryptoCurrencyList.add(
-                        convertDto(cryptoCurrency,
+                cryptoTickerList.add(
+                        convertDto(cryptoTicker,
                                     houbiSymbol,
                                     binancePriceDtoMap.get(houbiSymbol)
                                             .getBidPrice()
@@ -88,7 +105,7 @@ public class CryptoCurrencyServiceImpl implements CryptoCurrencyService {
             }
         }
 
-        cryptoCurrencyList.addAll(
+        cryptoTickerList.addAll(
                 binancePriceDtoMap
                         .values()
                         .parallelStream()
@@ -96,28 +113,61 @@ public class CryptoCurrencyServiceImpl implements CryptoCurrencyService {
                         .collect(Collectors.toList()));
 
 
-        cryptoCurrencyRepository.saveAll(cryptoCurrencyList);
-        logger.info("Saved " + cryptoCurrencyList.size() + " crypto currencies into db.");
+        cryptoTickerRepository.saveAll(cryptoTickerList);
+        logger.info("Saved " + cryptoTickerList.size() + " crypto currencies into db.");
     }
 
-    private CryptoCurrency convertDto(CryptoCurrency cryptoCurrency, String symbol, BigDecimal askPrice, BigDecimal bidPrice) {
-        cryptoCurrency.setCryptoSymbol(symbol);
-        cryptoCurrency.setAskPrice(askPrice);
-        cryptoCurrency.setBidPrice(bidPrice);
-        cryptoCurrency.setUpdatedDateTime(new Timestamp(System.currentTimeMillis()));
-        return cryptoCurrency;
+    @Override
+    public CryptoPair getCryptoPair(CryptoPairId cryptoPairId) {
+        return cryptoPairRepository.findById(cryptoPairId).orElse(null);
     }
 
-    private CryptoCurrency convertDtoFromBinance(BinancePriceDto binancePriceDto) {
-        CryptoCurrency cryptoCurrency = cryptoCurrencyRepository
+    @Override
+    public List<String> saveCryptoPair(String cryptoCode1, String cryptoCode2) throws CustomException {
+
+        CryptoCurrency cryptoCurrency1 = cryptoCurrencyRepository.findById(cryptoCode1).orElse(null);
+        CryptoCurrency cryptoCurrency2 = cryptoCurrencyRepository.findById(cryptoCode2).orElse(null);
+
+        if (cryptoCurrency1 != null && cryptoCurrency2 != null) {
+            cryptoPairRepository.save(convertCryptoPairDto(cryptoCode1, cryptoCode2));
+        } else {
+            throw new CustomException("Crypto currency not found.");
+        }
+
+        return cryptoPairRepository.findCryptoPairIdCryptoCode2ByCryptoPairIdCryptoCode1(cryptoCode1);
+    }
+
+
+    private CryptoTicker convertDto(CryptoTicker cryptoTicker, String symbol, BigDecimal askPrice, BigDecimal bidPrice) {
+        cryptoTicker.setSymbol(symbol);
+        cryptoTicker.setAskPrice(askPrice);
+        cryptoTicker.setBidPrice(bidPrice);
+        cryptoTicker.setUpdatedDateTime(new Timestamp(System.currentTimeMillis()));
+        return cryptoTicker;
+    }
+
+    private CryptoTicker convertDtoFromBinance(BinancePriceDto binancePriceDto) {
+        CryptoTicker cryptoTicker = cryptoTickerRepository
                 .findById(binancePriceDto.getSymbol().toUpperCase())
-                .orElse(new CryptoCurrency());
+                .orElse(new CryptoTicker());
 
-        cryptoCurrency.setCryptoSymbol(binancePriceDto.getSymbol().toUpperCase());
-        cryptoCurrency.setBidPrice(binancePriceDto.getBidPrice());
-        cryptoCurrency.setAskPrice(binancePriceDto.getAskPrice());
-        cryptoCurrency.setUpdatedDateTime(new Timestamp(System.currentTimeMillis()));
+        cryptoTicker.setSymbol(binancePriceDto.getSymbol().toUpperCase());
+        cryptoTicker.setBidPrice(binancePriceDto.getBidPrice());
+        cryptoTicker.setAskPrice(binancePriceDto.getAskPrice());
+        cryptoTicker.setUpdatedDateTime(new Timestamp(System.currentTimeMillis()));
 
-        return cryptoCurrency;
+        return cryptoTicker;
+    }
+
+    private CryptoPair convertCryptoPairDto(String cryptoSymbol1, String cryptoSymbol2) {
+        CryptoPairId cryptoPairId = new CryptoPairId(cryptoSymbol1, cryptoSymbol2);
+
+        CryptoPair cryptoPair = new CryptoPair();
+        cryptoPair.setCryptoPairId(cryptoPairId);
+        cryptoPair.setCryptoCurrency1(cryptoCurrencyRepository.findById(cryptoSymbol1).get());
+        cryptoPair.setCryptoCurrency2(cryptoCurrencyRepository.findById(cryptoSymbol2).get());
+        cryptoPair.setUpdatedDateTime(new Timestamp(System.currentTimeMillis()));
+
+        return cryptoPair;
     }
 }
